@@ -1,12 +1,11 @@
 import { INestApplication } from "@nestjs/common";
-import { NestApplication, NestFactory } from "@nestjs/core";
+import { NestFactory } from "@nestjs/core";
 import { MicroserviceOptions, Transport } from "@nestjs/microservices";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { mkdirSync } from "fs";
-import { join } from "path";
 import { PATH } from "./constants";
 import { LoggingInterceptor } from "./interceptors/logging";
 
@@ -23,11 +22,13 @@ export async function bootstrap(name: string, version: string, appModule: any) {
   await createServers(version, appModule);
 }
 
-async function createServers(version: string, appModule: any) {
+async function createServers(version: string, appModule: any, enableGRPC = false) {
   const app: INestApplication = await createNestApp(version, appModule);
 
   await createHTTPServer(app);
-  await createGRPCServer(app);
+  if (enableGRPC) {
+    await createGRPCServer(app);
+  }
 
   await app.startAllMicroservices();
   await app.listen(3000);
